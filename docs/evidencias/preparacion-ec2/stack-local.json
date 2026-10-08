@@ -1,0 +1,19 @@
+{
+  "resultado": "OK",
+  "verificacion_tls": "CA local de ensayo",
+  "comprobaciones": [
+    "gunicorn_nginx",
+    "login_https",
+    "cookies_seguras",
+    "csrf",
+    "xss",
+    "ciclo_solicitud",
+    "reportes",
+    "aislamiento",
+    "auditoria",
+    "estaticos",
+    "db_sin_superusuario",
+    "web_sin_secreto_admin"
+  ],
+  "cuentas_qa": "desactivadas"
+}

@@ -5,12 +5,11 @@ otra instancia ni comprar un dominio. Ejecuta cada paso y comprueba su resultado
 antes de pasar al siguiente. Si aparece un error, guarda el mensaje y detente.
 Estos son pasos para cuando decidas hacer el despliegue; no se ejecutaron en AWS.
 
-## 1. Tener el archivo del proyecto — en tu PC
+## 1. Tener acceso al proyecto y a tu instancia
 
-Necesitas Delegaciones-Municipales-demo.zip, en su versión actual. Si todavía
-no puedes descargarlo, primero hay que resolver la entrega del archivo.
-El código aún no está publicado en GitHub; clonar main no entrega esta versión.
-También necesitas la clave .pem con la que accedes a tu instancia.
+El proyecto está en la rama proyecto-completo del repositorio
+benjidev01/Delegaciones-Municipales. Lo descargaremos directamente en EC2 con
+Git. Necesitas la clave .pem con la que accedes a tu instancia.
 
 En los comandos de esta guía reemplaza:
 
@@ -47,38 +46,36 @@ Instancia → pestaña Seguridad → abre el grupo de seguridad → Editar regla
 Guarda las reglas. No abras 5432 ni 8000. Se necesita salida a internet para
 descargar imágenes y obtener certificados; las reglas de entrada no crean esa salida.
 
-## 4. Copiar el ZIP — en PowerShell de tu PC
-
-Abre PowerShell en la carpeta donde está el ZIP. Ejecuta:
-
-```powershell
-scp -i "C:\ruta\mi-clave.pem" .\Delegaciones-Municipales-demo.zip ec2-user@IP_PUBLICA:/home/ec2-user/
-```
-
-Si el archivo descargado se llama proyecto-municipal.zip, cambia su nombre a
-Delegaciones-Municipales-demo.zip antes de este paso. Verifica la huella SSH por
-un canal confiable antes de aceptar una conexión nueva. Resultado: transferencia completa.
-
-## 5. Entrar a la instancia — desde PowerShell
+## 4. Entrar a la instancia — desde PowerShell de tu PC
 
 ```powershell
 ssh -i "C:\ruta\mi-clave.pem" ec2-user@IP_PUBLICA
 ```
 
-Desde ahora los comandos se ejecutan dentro de EC2, salvo donde se indique
-abrir el navegador del PC. El usuario debe ser ec2-user.
+Verifica la huella SSH por un canal confiable antes de aceptar una conexión
+nueva. Desde ahora los comandos se ejecutan dentro de EC2, salvo donde se
+indique abrir el navegador del PC. El usuario debe ser ec2-user.
 
-## 6. Extraer e instalar Docker — dentro de EC2
+## 5. Descargar el proyecto — dentro de EC2
 
 ```sh
-sudo dnf install -y unzip
-unzip Delegaciones-Municipales-demo.zip
+sudo dnf install -y git
+cd /home/ec2-user
+git clone --branch proyecto-completo --single-branch https://github.com/benjidev01/Delegaciones-Municipales.git
+```
+
+Resultado: se crea la carpeta Delegaciones-Municipales con el código completo.
+Si el repositorio es privado, necesitarás acceso autorizado para clonarlo.
+
+## 6. Instalar Docker — dentro de EC2
+
+```sh
 cd /home/ec2-user/Delegaciones-Municipales
 sh scripts/install_amazon_linux.sh
 ```
 
-Si ya existe una carpeta Delegaciones-Municipales, detente antes de extraer para
-no sobrescribir otra instalación. Al terminar, sal de SSH:
+Si ya existe una carpeta Delegaciones-Municipales, detente antes de clonar para
+revisar esa instalación. Al terminar, sal de SSH:
 
 ```sh
 exit
@@ -206,7 +203,7 @@ cuenta administradora de evaluación. La aceptación se registra cuando pruebe e
 
 | Qué ocurre | Qué comprobar |
 |---|---|
-| No puedes descargar el ZIP | Resolver la entrega del código antes del paso 4 |
+| No puedes clonar | Comprobar acceso al repositorio y rama proyecto-completo |
 | Permission denied al usar Docker | Salir de SSH, volver a entrar y probar de nuevo |
 | Address already in use / port allocated | Paso 7: comprobar ss y docker ps |
 | El certificado no se emite | IP correcta, HTTP 80 público, instancia accesible y salida a internet |

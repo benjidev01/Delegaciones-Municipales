@@ -1,0 +1,174 @@
+[
+  {
+    "width": 1440,
+    "route": "/acceso/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 1440,
+    "route": "/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 1440,
+    "route": "/vecinos/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 1440,
+    "route": "/vecinos/nuevo/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 1440,
+    "route": "/solicitudes/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 1440,
+    "route": "/solicitudes/nueva/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/solicitudes/1/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/agenda/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 1440,
+    "route": "/agenda/nueva/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "aria-valid-attr-value",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 1440,
+    "route": "/reportes/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 1440,
+    "route": "/agenda/6/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/acceso/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 768,
+    "route": "/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 768,
+    "route": "/vecinos/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 768,
+    "route": "/vecinos/nuevo/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 768,
+    "route": "/solicitudes/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 768,
+    "route": "/solicitudes/nueva/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/solicitudes/1/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/agenda/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 768,
+    "route": "/agenda/nueva/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "aria-valid-attr-value",
+      "color-contrast"
+    ]
+  },
+  {
+    "width": 768,
+    "route": "/reportes/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": []
+  },
+  {
+    "width": 768,
+    "route": "/agenda/6/",
+    "horizontal_overflow": false,
+    "violations": [],
+    "manual_checks_required": [
+      "color-contrast"
+    ]
+  }
+]

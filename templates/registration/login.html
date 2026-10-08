@@ -1,0 +1,3 @@
+{% extends 'base.html' %}
+{% block title %}Acceso · Delegaciones Municipales{% endblock %}
+{% block content %}<section class="login card"><p class="eyebrow">ATENCIÓN MUNICIPAL</p><h1>Bienvenido</h1><p>Ingresa con tu cuenta institucional para gestionar la atención de tu delegación.</p><form method="post">{% csrf_token %}{{ form.as_p }}{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}<button type="submit">Ingresar al sistema</button></form><p class="hint">El acceso está reservado al personal autorizado.</p></section>{% endblock %}

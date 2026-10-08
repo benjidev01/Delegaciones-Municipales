@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Reportes · Delegaciones Municipales{% endblock %}
+{% block content %}
+<p class="eyebrow">SUPERVISIÓN MUNICIPAL</p><h1>Reportes de solicitudes</h1>
+<p class="lead">Consulta el estado actual de las solicitudes según su fecha de ingreso. El período incluye ambos días, en horario de Chile.</p>
+<section class="card"><h2>Filtros del reporte</h2><form method="get" class="filter-grid">{{ filtros.non_field_errors }}{% for field in filtros %}<div>{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}<div class="filter-actions"><button type="submit">Consultar reporte</button><a href="{% url 'reportes' %}">Limpiar filtros</a></div></form></section>
+<section class="card report-total"><span>Solicitudes que cumplen los filtros</span><strong>{{ total }}</strong></section>
+<div class="detail-grid"><section class="card"><h2>Por estado actual</h2><table><caption class="sr-only">Recuento por estado</caption><thead><tr><th scope="col">Estado</th><th scope="col">Solicitudes</th></tr></thead><tbody>{% for fila in por_estado %}<tr><th scope="row">{{ fila.nombre }}</th><td>{{ fila.total }}</td></tr>{% endfor %}</tbody></table></section><section class="card"><h2>Por delegación</h2><table><caption class="sr-only">Recuento por delegación</caption><thead><tr><th scope="col">Delegación</th><th scope="col">Solicitudes</th></tr></thead><tbody>{% for fila in por_delegacion %}<tr><th scope="row">{{ fila.delegacion__nombre }}</th><td>{{ fila.total }}</td></tr>{% empty %}<tr><td colspan="2">Sin solicitudes para este período.</td></tr>{% endfor %}</tbody></table></section></div>
+<section class="card"><h2>Detalle de solicitudes</h2>{% include 'tabla_solicitudes.html' with filas=pagina %}{% include 'paginacion_filtros.html' %}</section>
+{% endblock %}

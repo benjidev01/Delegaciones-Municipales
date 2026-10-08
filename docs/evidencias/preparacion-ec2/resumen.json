@@ -1,0 +1,38 @@
+{
+  "fecha": "2026-10-08",
+  "alcance": "ensayo local Linux x86_64; sin acceso AWS ni emisión ACME pública",
+  "suite": {
+    "pruebas": 115,
+    "resultado": "OK",
+    "duracion_segundos": 6.151
+  },
+  "stack": {
+    "nginx": "1.28.3",
+    "gunicorn": "26.2.0",
+    "certbot": "5.8.0",
+    "check_deploy": "sin incidencias",
+    "http01_webroot_local": true,
+    "cabeceras_proxy_reemplazadas": true,
+    "puertos_db_y_web_publicados": false,
+    "privilegios_db": "sin superusuario, createdb ni createrole",
+    "reinicio_provision_idempotente": true
+  },
+  "auditoria_dependencias": {
+    "paquetes": 8,
+    "vulnerabilidades_conocidas": 0
+  },
+  "bandit": {
+    "hallazgos": 0,
+    "errores": 0
+  },
+  "pendientes": [
+    "instalación real Amazon Linux 2023",
+    "emisión ACME pública",
+    "renovación real del certificado",
+    "acceso del docente",
+    "aceptación humana"
+  ],
+  "github_publicado": false,
+  "aws_modificado": false,
+  "respaldo_sql_creacion": "verificado localmente; restauración no ejecutada"
+}

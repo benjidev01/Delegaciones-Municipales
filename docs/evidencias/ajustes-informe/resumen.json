@@ -1,0 +1,19 @@
+{
+  "fecha": "2026-10-08",
+  "unitarias_integracion": {
+    "ejecutadas": 110,
+    "resultado": "OK",
+    "directo_segundos": 6.565,
+    "docker_https_segundos": 9.27
+  },
+  "https": {
+    "certificado_verificado": true,
+    "login": true,
+    "cookies_seguras": true,
+    "csrf": true,
+    "inactividad": true
+  },
+  "check_deploy": "sin incidencias",
+  "aceptacion_humana": "pendiente",
+  "publicacion_github": false
+}

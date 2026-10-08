@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Agenda · Delegaciones Municipales{% endblock %}
+{% block content %}
+<div class="heading"><div><p class="eyebrow">ATENCIÓN DE PÚBLICO</p><h1>Agenda de atenciones</h1></div><a class="button" href="{% url 'cita_crear' %}">Reservar atención</a></div>
+<p class="lead">Consulta las reservas de tu delegación. Las horas se muestran en el horario de Chile.</p>
+<section class="card">
+<form method="get" class="filter-grid">{{ filtros.non_field_errors }}{% for field in filtros %}<div>{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}<div class="filter-actions"><button type="submit">Filtrar agenda</button><a href="{% url 'agenda' %}">Limpiar filtros</a></div></form>
+<div class="table-wrap" role="region" aria-label="Atenciones agendadas" tabindex="0"><table><caption class="sr-only">Agenda de las delegaciones autorizadas</caption><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Vecino</th><th scope="col">Funcionario</th><th scope="col">Delegación</th><th scope="col">Estado</th><th scope="col">Acción</th></tr></thead><tbody>
+{% for cita in pagina %}<tr><td>{{ cita.inicio|date:'d/m/Y' }}<small>{{ cita.inicio|date:'H:i' }}–{{ cita.fin|date:'H:i' }}</small></td><td>{{ cita.vecino.nombre }}</td><td>{{ cita.funcionario.get_full_name|default:cita.funcionario.username }}</td><td>{{ cita.delegacion }}</td><td><span class="badge {{ cita.estado }}">{{ cita.get_estado_display }}</span></td><td><a href="{% url 'cita_detalle' cita.pk %}" aria-label="Ver atención de {{ cita.vecino.nombre }} del {{ cita.inicio|date:'d/m/Y H:i' }}">Ver atención</a></td></tr>{% empty %}<tr><td colspan="6">No hay atenciones para los filtros seleccionados.</td></tr>{% endfor %}
+</tbody></table></div>{% include 'paginacion_filtros.html' %}
+</section>{% endblock %}

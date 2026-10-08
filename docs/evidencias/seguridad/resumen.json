@@ -1,0 +1,20 @@
+{
+  "fecha": "2026-10-07T18:58:30.195936-03:00",
+  "ejecuciones": [
+    {
+      "entorno": "Entorno directo",
+      "pruebas": 106,
+      "duracion_segundos": 5.312,
+      "resultado": "OK"
+    },
+    {
+      "entorno": "Docker desde ZIP extra\u00eddo",
+      "pruebas": 106,
+      "duracion_segundos": 8.141,
+      "resultado": "OK"
+    }
+  ],
+  "pip_audit_version": "2.10.1",
+  "bandit_version": "1.9.4",
+  "aceptacion_humana": "pendiente"
+}

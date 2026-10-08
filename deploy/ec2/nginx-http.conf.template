@@ -1,0 +1,19 @@
+# Bootstrap: only HTTP-01 challenges are served before a valid certificate exists.
+server_tokens off;
+server {
+    listen 80 default_server;
+    server_name _;
+    return 404;
+}
+server {
+    listen 80;
+    server_name __PUBLIC_IP__;
+    server_tokens off;
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/acme;
+        try_files $uri =404;
+    }
+    location / {
+        return 503;
+    }
+}

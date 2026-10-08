@@ -1,0 +1,7 @@
+# Local TLS demonstration; not an internet deployment.
+services:
+  web:
+    environment:
+      DJANGO_DEBUG: "false"
+      LOCAL_HTTPS: "true"
+    command: ["sh", "scripts/start_https.sh"]

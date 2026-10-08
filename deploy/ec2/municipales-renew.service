@@ -1,0 +1,11 @@
+[Unit]
+Description=Renovación del certificado IP de Delegaciones Municipales
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ec2-user
+WorkingDirectory=/home/ec2-user/Delegaciones-Municipales
+ExecStart=/usr/bin/bash /home/ec2-user/Delegaciones-Municipales/scripts/ec2.sh renew

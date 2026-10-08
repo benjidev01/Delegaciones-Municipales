@@ -1,0 +1,62 @@
+name: delegaciones-municipales
+
+x-app: &app
+  image: delegaciones-municipales-demo:local
+  build: .
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  volumes:
+    - configuracion:/app/.local
+
+services:
+  init:
+    <<: *app
+    command: ["python", "scripts/init_container.py"]
+    restart: "no"
+
+  db:
+    image: postgres:17@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3
+    environment:
+      POSTGRES_USER: delegaciones
+      POSTGRES_DB: delegaciones
+      POSTGRES_PASSWORD_FILE: /run/app-config/postgres-password.txt
+    volumes:
+      - datos:/var/lib/postgresql/data
+      - configuracion:/run/app-config:ro
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U delegaciones -d delegaciones"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  web:
+    <<: *app
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "scripts/check_ready.py"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  configuracion:
+  datos:

@@ -1,0 +1,15 @@
+.git
+.venv
+.local
+**/__pycache__
+**/*.pyc
+staticfiles
+.env
+.env.*
+**/*.pem
+**/*.key
+**/*.crt
+.coverage
+dist
+docs/evidencias
+attachments

@@ -1,0 +1,14 @@
+{
+  "result": "passed",
+  "checks": [
+    "login",
+    "ciclo_solicitud",
+    "agenda",
+    "cancelacion",
+    "reportes",
+    "aislamiento",
+    "auditoria",
+    "inactividad_servidor_y_navegador"
+  ],
+  "test_accounts": "disabled_after_execution"
+}

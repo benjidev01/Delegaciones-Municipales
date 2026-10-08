@@ -1,9 +1,13 @@
 # Instrucciones de Delegaciones Municipales
 
-Esta rama publica las instrucciones y documentos de apoyo. El código de la
-aplicación, los scripts y la configuración ejecutable de despliegue siguen
-pendientes de una autorización de publicación independiente. Descargar esta
-rama no entrega todavía un programa ejecutable.
+La rama `proyecto-completo` incluye la aplicación, las pruebas, los scripts,
+la configuración de despliegue y estos documentos. Para obtenerla:
+
+```sh
+git clone --branch proyecto-completo --single-branch https://github.com/benjidev01/Delegaciones-Municipales.git
+```
+
+También se puede seleccionar esa rama en GitHub y usar Code → Download ZIP.
 
 ## Instancia AWS: empezar aquí
 

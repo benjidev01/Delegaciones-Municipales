@@ -1,0 +1,13 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{% block title %}Delegaciones Municipales{% endblock %}</title><link rel="stylesheet" href="{% static 'app.css' %}"></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<header><div class="brand"><span class="emblem" aria-hidden="true">DM</span><div><strong>Delegaciones Municipales</strong><small>Gestión y atención ciudadana · Prototipo</small></div></div>
+{% if user.is_authenticated %}<div class="account"><span>{{ user.get_full_name|default:user.username }}<small>{{ user.get_rol_display }} · {{ user.delegacion|default:'Todas las delegaciones' }}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary" type="submit">Salir</button></form></div>{% endif %}</header>
+{% if user.is_authenticated %}<nav aria-label="Navegación principal"><a href="{% url 'inicio' %}">Inicio</a><a href="{% url 'vecinos' %}">Vecinos</a><a href="{% url 'solicitudes' %}">Solicitudes</a><a href="{% url 'agenda' %}">Agenda</a>{% if user.supervisa %}<a href="{% url 'reportes' %}">Reportes</a>{% endif %}{% if user.administra %}<a href="{% url 'auditoria' %}">Auditoría</a><a href="/admin/">Administración</a>{% endif %}</nav>{% endif %}
+<main id="contenido" tabindex="-1">{% for message in messages %}<div class="message {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}{% block content %}{% endblock %}</main>
+<footer>Demostración académica · Solo datos ficticios · Horario de Chile</footer>
+{% if user.is_authenticated %}<script src="{% static 'sesion.js' %}" defer></script>{% endif %}
+</body></html>

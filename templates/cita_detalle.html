@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Atención #{{ cita.pk }} · Delegaciones Municipales{% endblock %}
+{% block content %}
+<a href="{% url 'agenda' %}">← Volver a la agenda</a>
+<div class="heading"><div><p class="eyebrow">{{ cita.delegacion }}</p><h1>Atención #{{ cita.pk }}</h1></div><span class="badge {{ cita.estado }}">{{ cita.get_estado_display }}</span></div>
+<div class="detail-grid"><section class="card"><h2>Datos de la reserva</h2><dl><dt>Vecino</dt><dd>{{ cita.vecino }}</dd><dt>Funcionario</dt><dd>{{ cita.funcionario.get_full_name|default:cita.funcionario.username }}</dd><dt>Fecha y hora (Chile)</dt><dd>{{ cita.inicio|date:'d/m/Y H:i' }} a {{ cita.fin|date:'H:i' }}</dd><dt>Motivo</dt><dd>{{ cita.motivo|linebreaksbr }}</dd>{% if cita.solicitud %}<dt>Solicitud relacionada</dt><dd><a href="{% url 'solicitud_detalle' cita.solicitud.pk %}">Solicitud #{{ cita.solicitud.pk }}</a></dd>{% endif %}</dl></section>
+<section class="card"><h2>Gestionar atención</h2>{% if form %}<p>Para cambiar el horario, cancela esta reserva y crea una nueva. Solo el funcionario de atención o un supervisor pueden marcarla como atendida.</p><form method="post" action="{% url 'cita_estado' cita.pk %}">{% csrf_token %}{{ form.as_p }}<button type="submit">Confirmar acción</button></form>{% else %}<p>Esta atención ya finalizó. Su historial se conserva.</p>{% endif %}</section></div>
+<section class="card"><h2>Historial de la atención</h2><ol class="timeline">{% for cambio in cambios %}<li><strong>{{ cambio.get_anterior_display }} → {{ cambio.get_nuevo_display }}</strong><small>{{ cambio.fecha|date:'d/m/Y H:i' }} · {{ cambio.actor.username }}</small><p>{{ cambio.motivo|linebreaksbr }}</p></li>{% empty %}<li>Reserva creada. No se han registrado cambios de estado.</li>{% endfor %}</ol></section>
+{% endblock %}

@@ -53,32 +53,26 @@ Si cambia la IP, el certificado anterior no sirve para la nueva dirección.
 
 ## 1. Entregar el código, después de su revisión y permiso
 
-Revisar primero el código completo disponible en el entorno de trabajo. La
-rama de instrucciones publica documentación; el código de la aplicación
-todavía no se ha publicado: no asumir que git clone entrega el programa.
-La entrega puede hacerse mediante el ZIP generado, o mediante una rama de GitHub
-una vez que el usuario autorice esa publicación. No transferir .local, bases,
-credenciales privadas, claves SSH ni certificados locales del PC.
-
-Si se dispone del ZIP en Windows, PowerShell permite transferirlo mediante:
+El proyecto completo se publica en la rama proyecto-completo. Revisar el código
+antes de autorizar el despliegue. Entrar a la instancia desde PowerShell:
 
 ```powershell
-scp -i "C:\ruta\mi-clave.pem" .\Delegaciones-Municipales-demo.zip ec2-user@IP_PUBLICA:/home/ec2-user/
 ssh -i "C:\ruta\mi-clave.pem" ec2-user@IP_PUBLICA
 ```
 
-Sustituir los marcadores por la ruta real de la clave y la IP de su instancia.
-No compartir la clave privada en el chat ni con el docente. Verificar la huella
-SSH de la instancia por un canal confiable antes de aceptarla por primera vez.
-
-En la instancia, extraer el ZIP de esta versión en una carpeta nueva:
+Sustituir los marcadores por la clave local y la IP de la instancia. Verificar
+la huella SSH antes de aceptar una conexión nueva. Dentro de EC2:
 
 ```sh
-sudo dnf install -y unzip
-unzip Delegaciones-Municipales-demo.zip
+sudo dnf install -y git
+cd /home/ec2-user
+git clone --branch proyecto-completo --single-branch https://github.com/benjidev01/Delegaciones-Municipales.git
 cd /home/ec2-user/Delegaciones-Municipales
 sh scripts/install_amazon_linux.sh
 ```
+
+Si el repositorio es privado, se necesita acceso Git autorizado. No transferir
+archivos .local ni compartir claves SSH, bases o credenciales privadas.
 
 No sobrescribir a ciegas una carpeta de aplicación existente. El instalador
 comprueba Amazon Linux 2023, instala Docker y, si falta Compose, descarga la

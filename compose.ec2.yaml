@@ -1,0 +1,127 @@
+name: delegaciones-ec2
+
+x-app: &app
+  image: delegaciones-municipales-ec2:local
+  build:
+    context: .
+    dockerfile: Dockerfile.ec2
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  volumes:
+    - configuracion:/app/.local
+
+services:
+  init:
+    <<: *app
+    command: ["python", "scripts/init_ec2.py"]
+    volumes:
+      - configuracion:/app/.local
+      - administracion:/run/db-admin
+    restart: "no"
+    networks: [database]
+
+  db:
+    image: postgres:17@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: delegaciones
+      POSTGRES_PASSWORD_FILE: /run/db-admin/password.txt
+    volumes:
+      - datos:/var/lib/postgresql/data
+      - administracion:/run/db-admin:ro
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d delegaciones"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+    networks: [database]
+
+  provision:
+    <<: *app
+    command: ["python", "scripts/provision_ec2.py"]
+    volumes:
+      - configuracion:/app/.local
+      - administracion:/run/db-admin:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks: [database]
+
+  web:
+    <<: *app
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      DJANGO_DEBUG: "false"
+      DJANGO_TRUST_PROXY: "true"
+      DJANGO_ALLOWED_HOSTS: ${PUBLIC_IP:?Prepare .local/ec2.env},localhost,127.0.0.1
+      SEED_DEMO: "true"
+    volumes:
+      - configuracion:/app/.local
+      - estaticos:/app/staticfiles
+    depends_on:
+      provision:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "scripts/check_ec2.py"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+    networks: [application, database]
+
+  proxy:
+    image: nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236
+    entrypoint: ["nginx"]
+    command: ["-g", "daemon off;"]
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:${HTTP_PORT:-80}:80"
+      - "${BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./.local/ec2/nginx:/etc/nginx/conf.d:ro
+      - certificados:/etc/letsencrypt:ro
+      - acme:/var/www/acme:ro
+      - estaticos:/var/www/static:ro
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks: [application, edge]
+
+  certbot:
+    image: certbot/certbot:v5.8.0@sha256:f70ad0adbb7e117f0fe42a63c553f28ea451edabc0148757b6efcd9735acaa20
+    volumes:
+      - certificados:/etc/letsencrypt
+      - acme:/var/www/acme
+      - registros_acme:/var/log/letsencrypt
+    profiles: [tools]
+    networks: [edge]
+
+volumes:
+  configuracion:
+  administracion:
+  datos:
+  estaticos:
+  certificados:
+  acme:
+  registros_acme:
+
+networks:
+  edge:
+  application:
+    internal: true
+  database:
+    internal: true

@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.local/
+staticfiles/
+.coverage
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.sqlite3
+*.dump
+*.log
+vendor/wheels/
+dist/

@@ -1,0 +1,14 @@
+{
+  "result": "passed",
+  "cita_programada": 4,
+  "checks": [
+    "reserva",
+    "conflicto",
+    "cancelacion",
+    "liberacion_horario",
+    "permisos",
+    "reportes",
+    "auditoria",
+    "pc_tablet"
+  ]
+}
