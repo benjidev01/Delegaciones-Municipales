@@ -7,7 +7,7 @@ directories = ['apps', 'config', 'deploy', 'scripts', 'static', 'templates']
 names = ['manage.py', 'Dockerfile', 'compose.yaml', 'compose.https.yaml',
          '.dockerignore', '.gitignore', 'requirements.txt', 'requirements.lock',
          'requirements-dev.txt', 'Dockerfile.ec2', 'compose.ec2.yaml',
-         'requirements-prod.txt', 'requirements-prod.lock']
+         'requirements-prod.txt', 'requirements-prod.lock', 'requirements-certbot.txt', 'requirements-certbot.lock']
 paths = [root / name for name in names]
 for name in directories:
     paths.extend(p for p in (root / name).rglob('*')

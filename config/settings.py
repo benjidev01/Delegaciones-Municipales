@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-local = BASE_DIR / '.local' / 'config.json'
+local = Path(os.environ.get('DJANGO_CONFIG_FILE', BASE_DIR / '.local' / 'config.json'))
 LOCAL = json.loads(local.read_text()) if local.exists() else {}
 
 def setting(name, default=None):
@@ -57,7 +57,7 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = Path(setting('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'inicio'
@@ -77,7 +77,7 @@ SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 
-# Only enable behind the private EC2 network, where Nginx overwrites this header.
+# Enable only behind a private proxy that overwrites the forwarded headers.
 TRUST_PROXY = setting('DJANGO_TRUST_PROXY', 'false').lower() == 'true'
 if TRUST_PROXY:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

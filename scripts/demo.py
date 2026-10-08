@@ -16,7 +16,7 @@ from apps.delegaciones.models import Delegacion
 from apps.vecinos.models import Vecino
 from apps.solicitudes.services import crear_solicitud
 
-credentials_path = ROOT / '.local' / 'demo-credentials.json'
+credentials_path = Path(os.environ.get('DJANGO_DEMO_CREDENTIALS_FILE', ROOT / '.local' / 'demo-credentials.json'))
 credentials = json.loads(credentials_path.read_text()) if credentials_path.exists() else {}
 with transaction.atomic():
     norte, _ = Delegacion.objects.get_or_create(nombre='Delegación Norte (Demo)', defaults={'direccion': 'Avenida Ejemplo 100'})
@@ -41,4 +41,4 @@ with transaction.atomic():
 fd = os.open(credentials_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
 with os.fdopen(fd, 'w') as stream:
     json.dump(credentials, stream, indent=2)
-print('Datos ficticios preparados. Credenciales privadas en .local/demo-credentials.json; no compartir ni versionar.')
+print('Datos ficticios preparados. Credenciales en el archivo privado configurado; no versionar.')

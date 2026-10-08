@@ -37,3 +37,7 @@ También se puede seleccionar esa rama en GitHub y usar Code → Download ZIP.
 El despliegue en la instancia del usuario y la emisión/renovación pública del
 certificado no se han realizado. Los resultados técnicos documentados
 corresponden a ensayos locales; la aceptación del docente queda pendiente.
+
+## Despliegue recomendado en su EC2: Apache
+
+Siga [la guía Apache paso a paso](docs/apache-paso-a-paso.md) para Amazon Linux 2023, sin Docker ni Nginx. Apache atiende 80/443 y Gunicorn ejecuta Django mediante un socket privado. Las guías EC2 anteriores con Docker siguen disponibles como alternativa; use una modalidad completa.

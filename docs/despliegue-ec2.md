@@ -1,3 +1,5 @@
+> Esta guía corresponde a Docker y Nginx. Para la modalidad Apache solicitada, siga [apache-paso-a-paso.md](apache-paso-a-paso.md).
+
 # EC2 con Amazon Linux 2023: acceso del docente por IP y HTTPS
 
 Para una primera instalación, seguir [instrucciones simples paso a paso](ec2-paso-a-paso.md).

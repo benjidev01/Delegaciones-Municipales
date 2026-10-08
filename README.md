@@ -98,3 +98,7 @@ certificados para IPv4 públicas con el perfil shortlived; se incluye un timer d
 renovación y configuración por IP validada. La cuenta de base de la aplicación
 no es superusuario y no recibe el secreto administrador. Esta configuración
 se ensayó localmente y se publica en esta rama; el despliegue en la cuenta AWS del usuario sigue pendiente.
+
+## Despliegue recomendado en su EC2: Apache
+
+Siga [la guía Apache paso a paso](docs/apache-paso-a-paso.md) para Amazon Linux 2023, sin Docker ni Nginx. Apache atiende 80/443 y Gunicorn ejecuta Django mediante un socket privado. Las guías EC2 anteriores con Docker siguen disponibles como alternativa; use una modalidad completa.

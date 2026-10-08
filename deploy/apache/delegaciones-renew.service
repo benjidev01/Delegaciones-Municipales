@@ -1,0 +1,8 @@
+[Unit]
+Description=Renovar HTTPS de Delegaciones Municipales
+After=network-online.target httpd.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/delegaciones/certbot/bin/certbot renew --quiet --deploy-hook "/usr/sbin/httpd -t && /usr/bin/systemctl reload httpd"

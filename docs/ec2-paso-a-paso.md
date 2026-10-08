@@ -1,3 +1,5 @@
+> Esta guía corresponde a Docker y Nginx. Para la modalidad Apache solicitada, siga [apache-paso-a-paso.md](apache-paso-a-paso.md).
+
 # EC2: instrucciones simples, paso a paso
 
 Esta guía usa la instancia Amazon Linux 2023 que ya tienes. No necesitas crear

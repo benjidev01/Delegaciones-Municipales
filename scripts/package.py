@@ -11,7 +11,7 @@ target = DIST / 'Delegaciones-Municipales-demo.zip'
 directories = {'apps', 'config', 'deploy', 'docs', 'scripts', 'static', 'templates', 'vendor'}
 files = {'.gitignore', '.dockerignore', 'Dockerfile', 'compose.yaml', 'compose.https.yaml', 'manage.py', 'README.md',
          'requirements.txt', 'requirements.lock', 'requirements-dev.txt',
-         'Dockerfile.ec2', 'compose.ec2.yaml', 'requirements-prod.txt', 'requirements-prod.lock'}
+         'Dockerfile.ec2', 'compose.ec2.yaml', 'requirements-prod.txt', 'requirements-prod.lock', 'requirements-certbot.txt', 'requirements-certbot.lock'}
 excluded = {'.git', '.local', '.venv', '__pycache__', 'dist', 'staticfiles'}
 
 with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
