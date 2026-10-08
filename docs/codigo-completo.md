@@ -4714,6 +4714,7 @@ with make_server('0.0.0.0', 8000, application, server_class=LocalTLSServer,
 ````
 """Exercise the first sprint against a running local server using fictional data."""
 import json
+import os
 from pathlib import Path
 import re
 import uuid
@@ -4721,7 +4722,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 credentials = json.loads((ROOT / '.local/demo-credentials.json').read_text())
-BASE = 'http://127.0.0.1:8000'
+BASE = os.environ.get('DELEGACIONES_TEST_URL', 'http://127.0.0.1:8000')
 OUT = ROOT / '.local/browser'
 OUT.mkdir(exist_ok=True)
 
@@ -4796,11 +4797,14 @@ with sync_playwright() as playwright:
 
     page.get_by_role('button', name='Salir', exact=True).click()
     page.wait_for_url(BASE + '/acceso/')
-    # Django focuses the username automatically on login. Shift+Tab reaches
-    # the preceding skip link without relying on browser history focus.
+    # Reach the skip link with the keyboard, including any preceding brand link.
     page.locator('#id_username').focus()
-    page.keyboard.press('Shift+Tab')
-    assert page.evaluate('document.activeElement.textContent') == 'Saltar al contenido'
+    for _ in range(10):
+        page.keyboard.press('Shift+Tab')
+        if page.evaluate('document.activeElement.textContent.trim()') == 'Saltar al contenido':
+            break
+    assert page.evaluate('document.activeElement.textContent.trim()') == 'Saltar al contenido'
+    assert page.get_by_role('link', name='Saltar al contenido').is_visible()
     page.keyboard.press('Enter')
     assert page.locator('#contenido').evaluate('(node) => node === document.activeElement')
     assert not errors, errors
@@ -5462,11 +5466,62 @@ if __name__ == '__main__':
 ````
 
 
+## scripts/update_apache_design.sh
+
+````
+#!/bin/bash
+# Apply this visual release to the existing native Apache installation.
+set -euo pipefail
+[[ $EUID -eq 0 ]] || { echo 'Ejecute con sudo.'; exit 1; }
+REPO_DIR=$(cd "$(dirname "$0")/.." && pwd)
+APP_DIR=/opt/delegaciones/app
+[[ -f "$APP_DIR/manage.py" && -f /etc/delegaciones/config.json ]] || { echo 'Falta la instalación nativa Apache.'; exit 1; }
+[[ $REPO_DIR != "$APP_DIR" ]] || { echo 'Ejecute desde el clon de trabajo.'; exit 1; }
+command -v municipal-manage >/dev/null || { echo 'Falta municipal-manage; complete el instalador Apache.'; exit 1; }
+[[ -f "$REPO_DIR/static/civica-logo.png" && -f "$REPO_DIR/templates/admin/base_site.html" ]] || { echo 'Actualice el clon completo antes de continuar.'; exit 1; }
+# Back up interface files only; private configuration stays in /etc/delegaciones.
+BACKUP_DIR=/var/backups/delegaciones-diseno
+install -d -m 0700 "$BACKUP_DIR"
+BACKUP_FILE="$BACKUP_DIR/interfaz-$(date -u +%Y%m%dT%H%M%SZ)-$$.tar.gz"
+umask 077
+tar -czf "$BACKUP_FILE" -C "$APP_DIR" templates static
+rsync -a --chown=root:root "$REPO_DIR/templates/" "$APP_DIR/templates/"
+rsync -a --chown=root:root "$REPO_DIR/static/" "$APP_DIR/static/"
+chmod -R a+rX "$APP_DIR/templates" "$APP_DIR/static"
+municipal-manage check --deploy --fail-level WARNING
+municipal-manage collectstatic --noinput
+restorecon -R /var/www/delegaciones-static
+systemctl restart delegaciones
+systemctl is-active delegaciones
+printf 'Interfaz actualizada. Respaldo: %s\n' "$BACKUP_FILE"
+
+````
+
+
+## static/admin-civica.css
+
+````
+:root,[data-theme="light"]{--primary:#126d65;--secondary:#183b49;--accent:#d7ece5;--primary-fg:#fff;--body-fg:#172f44;--body-bg:#f4f6f9;--body-quiet-color:#536579;--body-loud-color:#172f44;--header-color:#fff;--header-branding-color:#fff;--header-bg:#183b49;--header-link-color:#fff;--breadcrumbs-fg:#fff;--breadcrumbs-link-fg:#fff;--breadcrumbs-bg:#126d65;--link-fg:#126d65;--link-hover-color:#0c534e;--link-selected-fg:#0c534e;--hairline-color:#e0e7ed;--border-color:#d0dce5;--button-bg:#126d65;--button-hover-bg:#0c534e;--default-button-bg:#126d65;--default-button-hover-bg:#0c534e;--selected-bg:#e5f2ef;--selected-row:#e5f2ef;--darkened-bg:#edf2f5;--font-family-primary:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+[data-theme="dark"]{--primary:#6bc5b4;--secondary:#183b49;--header-bg:#183b49;--header-color:#fff;--header-branding-color:#fff;--header-link-color:#fff;--breadcrumbs-bg:#183b49;--breadcrumbs-fg:#fff;--breadcrumbs-link-fg:#fff;--link-fg:#86d4c3;--link-hover-color:#bcebe0;--button-bg:#126d65;--button-hover-bg:#0c534e;--default-button-bg:#126d65;--default-button-hover-bg:#0c534e;--primary-fg:#fff}
+#header{padding:20px 32px}.civica-admin-brand{display:flex;align-items:center;gap:12px;font-weight:750;font-size:25px;text-decoration:none;line-height:1.3}.civica-admin-brand img{background:#fff;border-radius:9px;object-fit:contain}.civica-admin-brand small{display:block;font-size:11px;font-weight:400;letter-spacing:.2px}.civica-admin-dot{color:#b9e5d8}.module{border-radius:8px;overflow:hidden;border:1px solid var(--border-color)}.module h2,.module caption{padding:13px}input,select,textarea{border-radius:6px}.button,input[type=submit],input[type=button],.submit-row input{border-radius:7px;padding:11px 16px}.submit-row{border-radius:9px}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #b46a17;outline-offset:3px}@media(max-width:767px){#header{padding:16px 20px}.civica-admin-brand{font-size:23px}}
+
+````
+
+
 ## static/app.css
 
 ````
-:root{--ink:#163044;--muted:#4c6374;--teal:#116459;--line:#d4dfe5;--surface:#fff;--background:#f3f6f8}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--background);font:16px/1.55 system-ui,sans-serif}a{color:#075e79;text-underline-offset:3px}header{background:var(--surface);padding:24px 5%;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line)}.brand,.account{display:flex;gap:16px;align-items:center}.brand strong{font-size:20px}.emblem{display:grid;place-items:center;background:var(--teal);color:#fff;border-radius:12px;width:52px;height:52px;font-weight:800}small{display:block;color:var(--muted)}nav{display:flex;gap:8px;padding:10px 5%;background:#173c4c;flex-wrap:wrap}nav a{color:white;text-decoration:none;padding:10px 16px;border-radius:6px}nav a:hover{background:#285b6c}main{max-width:1200px;margin:36px auto;padding:0 24px;min-height:65vh}h1{font-size:clamp(25px,3.2vw,36px);line-height:1.2;margin:8px 0 18px}h2{font-size:21px;margin-top:0}.eyebrow{font-size:12px;font-weight:800;letter-spacing:1.5px;color:var(--teal);margin-bottom:8px}.lead{color:var(--muted);max-width:720px}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:26px;margin-bottom:22px;box-shadow:0 4px 18px #12354405}.stats{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:20px;margin-top:28px}.stats strong{display:block;font-size:42px;color:var(--teal)}.stats span{color:var(--muted)}.stats h2{margin-top:16px}.actions,.heading,.filters{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.actions{margin:0 0 28px}.heading{justify-content:space-between;margin-bottom:20px}button,.button{font:inherit;font-weight:650;cursor:pointer;border:1px solid var(--teal);background:var(--teal);color:white;padding:11px 18px;border-radius:7px;text-decoration:none;display:inline-block;min-height:44px}button:hover,.button:hover{background:#0a4b43}.secondary{background:white;color:var(--teal)}.secondary:hover{background:#e9f5f1;color:#10483f}input,select,textarea{font:inherit;border:1px solid #8ca1af;border-radius:6px;padding:11px;color:var(--ink);background:white;max-width:100%;width:100%;min-height:44px}textarea{min-height:110px;resize:vertical}input:disabled,select:disabled{background:#edf2f5}label{font-weight:650;display:block;margin-bottom:5px}.field{margin:20px 0}.hint{color:var(--muted);font-size:14px}.filters{margin-bottom:20px}.filters input,.filters select{width:260px}.filters label{margin:0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th{font-size:13px;color:var(--muted);background:#f7f9fa}th,td{padding:15px 12px;border-bottom:1px solid var(--line);vertical-align:top}td a{font-weight:650}.badge{font-size:13px;font-weight:700;padding:5px 10px;background:#edf2f7;color:#294356;border-radius:20px;white-space:nowrap}.atencion,.asignada{background:#e5f0fa;color:#154e7d}.resuelta,.cerrada{background:#e2f4ea;color:#1b5d3c}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.folio{overflow-wrap:anywhere}dt{font-size:13px;font-weight:700;color:var(--muted);margin-top:16px}dd{margin:3px 0}.timeline{padding-left:24px}.timeline li{padding:0 0 20px 10px}.note{border-bottom:1px solid var(--line);padding:14px 0}.login{max-width:480px;margin:60px auto}.form-card{max-width:720px;margin:auto}.errorlist{padding:12px 24px;border-left:4px solid #ac2525;background:#fff0f0;color:#8b1e1e}.message{padding:14px 18px;background:#e5f2ee;border:1px solid #98c7b5;border-radius:8px;margin-bottom:18px}.message.error{background:#fff0f0;border-color:#d79c9c;color:#8b1e1e}.pagination{display:flex;gap:20px;padding-top:18px;flex-wrap:wrap}footer{padding:24px;text-align:center;font-size:13px;color:var(--muted)}:focus-visible{outline:3px solid #b25700;outline-offset:3px}.skip{position:absolute;top:-100px;background:white;padding:15px;z-index:10}.skip:focus{top:0}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media(max-width:800px){header{align-items:flex-start;flex-direction:column;padding:20px}.stats,.detail-grid{grid-template-columns:1fr}.stats{gap:0}main{margin:24px auto;padding:0 16px}.card{padding:20px}.account{width:100%;justify-content:space-between}nav{padding:8px}.heading{align-items:flex-start}.filters{align-items:stretch;flex-direction:column}.filters input,.filters select{width:100%}.login{margin-top:20px}th,td{padding:12px}.brand strong{font-size:18px}}
-.filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-bottom:24px;align-items:start}.filter-grid>.errorlist{grid-column:1/-1}.filter-actions{display:flex;gap:16px;align-items:center;flex-wrap:wrap;align-self:end}.report-total{display:flex;align-items:center;justify-content:space-between;gap:20px}.report-total strong{font-size:40px;color:var(--teal)}.programada{background:#e5f0fa;color:#154e7d}.atendida{background:#e2f4ea;color:#1b5d3c}.cancelada{background:#fbeaea;color:#8b2929}@media(max-width:500px){.filter-grid{grid-template-columns:1fr}}
+:root{--ink:#172f44;--muted:#536579;--teal:#126d65;--teal-dark:#0c534e;--line:#e0e7ed;--surface:#fff;--background:#f4f6f9;--nav-width:244px;--shadow:0 4px 20px #17334b05}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--background);font:15px/1.6 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--teal);text-underline-offset:3px}small{display:block;color:var(--muted);font-size:12px}.icon{flex-shrink:0;vertical-align:middle}.app-shell{display:grid;grid-template-columns:var(--nav-width) minmax(0,1fr);min-height:100vh}.workspace-body{min-width:0;display:flex;flex-direction:column}.sidebar{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:27px 18px 20px;background:white;border-right:1px solid var(--line)}.brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink)}.brand-logo{object-fit:contain;flex-shrink:0}.brand strong{font-size:28px;letter-spacing:-1.2px;font-weight:800;line-height:1.1}.brand small{font-size:11px;letter-spacing:.15px;margin-top:4px}.brand-dot{color:var(--teal)}.nav-label{font-size:10px;font-weight:750;letter-spacing:1.7px;color:var(--muted);margin:42px 13px 14px}.sidebar nav{display:flex;flex-direction:column;gap:6px}.sidebar nav a{display:flex;align-items:center;gap:13px;padding:12px 15px;min-height:46px;border-radius:9px;text-decoration:none;color:var(--muted);font-weight:600}.sidebar nav a:hover{background:#f3f7f8;color:var(--ink)}.sidebar nav a[aria-current=page]{background:#e5f2ef;color:#0c6058;box-shadow:inset 3px 0 var(--teal)}.sidebar-bottom{display:flex;align-items:flex-start;gap:10px;padding:17px 10px;border-top:1px solid var(--line);margin-top:auto}.scope-icon{color:var(--teal);margin-top:5px}.sidebar-bottom strong{font-size:12px;font-weight:650;display:block;line-height:1.5;margin-top:3px}.sidebar-caption{font-size:10px;color:var(--muted);padding:0 10px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:87px;padding:18px 36px;background:white;border-bottom:1px solid var(--line)}.topbar-context{display:flex;align-items:center;gap:12px}.topbar-context strong{font-size:13px}.topbar-context small{font-size:11px}.context-symbol{color:var(--teal);display:grid;place-items:center;width:37px;height:37px;background:#f1f6f5;border-radius:10px}.account{display:flex;align-items:center;gap:11px}.avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#edf2f7;color:#244863;font-size:13px;font-weight:700}.account-text strong{display:block;font-size:12px;max-width:240px;overflow-wrap:anywhere}.account-text small{font-size:11px}.account form{margin-left:13px;padding-left:20px;border-left:1px solid var(--line)}.logout-button{display:flex;align-items:center;gap:7px;color:var(--muted);border:0;background:transparent;padding:9px 2px;min-height:44px;font-size:12px}.logout-button:hover{background:transparent;color:var(--teal)}main{width:100%;max-width:1520px;margin:0 auto;padding:37px 36px 20px;flex:1;min-width:0}h1{font-size:clamp(25px,2.4vw,32px);line-height:1.25;letter-spacing:-.9px;margin:8px 0 12px;font-weight:750}h2{font-size:18px;line-height:1.4;letter-spacing:-.3px;margin:0 0 12px}p{margin-top:0}.eyebrow{font-size:10px;font-weight:750;letter-spacing:1.7px;color:var(--teal);margin-bottom:9px}.lead{color:var(--muted);max-width:760px;font-size:14px;margin-bottom:24px}.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:25px;margin-bottom:24px;box-shadow:var(--shadow)}.heading{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:24px}.heading h1{margin-bottom:0}.heading .lead{margin:12px 0 0}.dashboard-heading{align-items:center}.date-chip{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;background:white;border:1px solid var(--line);padding:9px 13px;border-radius:8px;color:var(--muted);white-space:nowrap}.stats{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:19px;margin:27px 0 0}.stat-card{padding:22px}.stat-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:600;color:var(--muted)}.stat-icon{display:inline-flex;align-items:center;justify-content:center;width:37px;height:37px;border-radius:10px;background:#eaf5f1;color:var(--teal)}.stat-icon.amber{background:#fdf1df;color:#906023}.stats strong{display:block;font-size:38px;font-weight:750;letter-spacing:-1.5px;line-height:1.4;margin:6px 0 2px}.stats small{font-size:11px}.scope-card h2{font-size:18px;margin:15px 0 9px;max-width:300px}.welcome-strip{display:flex;align-items:center;gap:17px;padding:23px 25px;border:1px solid #d4e7e1;border-radius:12px;background:#eef7f4;margin-bottom:27px}.welcome-icon{width:43px;height:43px;display:grid;place-items:center;border-radius:12px;background:#d9ebe5;color:var(--teal);flex-shrink:0}.welcome-strip h2{font-size:15px;margin:0 0 4px}.welcome-strip p{font-size:12px;color:var(--muted);margin:0}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.welcome-strip .actions{margin-left:auto;flex-shrink:0}.dashboard-grid{display:grid;grid-template-columns:minmax(0,1fr) 246px;gap:22px}.dashboard-aside{min-width:0}.section-heading{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.section-heading h2{margin:0 0 4px;font-size:17px}.section-heading p{margin:0;color:var(--muted);font-size:12px}.text-link{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:650;text-decoration:none;white-space:nowrap}.text-link:hover{text-decoration:underline}.text-link .icon{width:16px;height:16px}.recent-card{padding:23px;min-width:0}.agenda-card{padding:23px}.agenda-card h2{margin-top:18px;font-size:16px}.agenda-card p{font-size:12px;color:var(--muted);line-height:1.8}.team-note{display:flex;gap:11px;padding:0 10px}.note-dot{width:7px;height:7px;background:var(--teal);border-radius:50%;margin-top:8px;flex-shrink:0}.team-note strong{font-size:12px}.team-note p{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.8}
+button,.button{font:inherit;font-size:13px;font-weight:650;cursor:pointer;border:1px solid var(--teal);background:var(--teal);color:white;padding:10px 16px;border-radius:8px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;line-height:1.4;transition:background .15s}.button .icon,button .icon{width:17px;height:17px}button:hover,.button:hover{background:var(--teal-dark)}.secondary{background:white;color:var(--teal);border-color:#b9d1ca}.secondary:hover{background:#e6f2ed;color:var(--teal-dark)}input,select,textarea{font:inherit;font-size:14px;border:1px solid #a8b8c6;border-radius:8px;padding:11px 12px;color:var(--ink);background:white;max-width:100%;width:100%;min-height:44px}textarea{min-height:120px;resize:vertical}input:disabled,select:disabled{background:#edf2f5}label{font-size:13px;font-weight:650;display:block;margin-bottom:7px}.field{margin:22px 0}.hint{color:var(--muted);font-size:12px}.filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:25px;padding-bottom:23px;border-bottom:1px solid var(--line)}.filters input,.filters select{width:260px}.filters label{margin:0}.filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin-bottom:24px;align-items:start}.filter-grid>.errorlist{grid-column:1/-1}.filter-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;align-self:end;font-size:13px}.table-wrap{overflow:auto;max-width:100%;border-radius:8px}table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}th{font-size:11px;font-weight:650;color:var(--muted);background:#f6f8fa;letter-spacing:.15px}th,td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:middle}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#f9fbfc}td a{font-weight:650;text-decoration:none}td a:hover{text-decoration:underline}td small{font-size:11px}td:has(a){min-width:145px}td:has(.badge){white-space:nowrap}.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:650;padding:5px 9px;background:#edf2f7;color:#38566e;border-radius:6px;white-space:nowrap;line-height:1.5}.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;margin-right:6px}.ingresada{background:#fdf0db;color:#805514}.atencion,.asignada,.programada{background:#e9f0fc;color:#275790}.resuelta,.cerrada,.atendida{background:#e5f4ec;color:#23613e}.cancelada{background:#fbeaea;color:#8b2929}.detail-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}.folio{overflow-wrap:anywhere}dt{font-size:11px;font-weight:650;color:var(--muted);margin-top:18px;text-transform:uppercase;letter-spacing:.4px}dd{margin:5px 0;overflow-wrap:anywhere}.timeline{padding-left:23px}.timeline li{padding:0 0 20px 10px}.timeline li::marker{color:var(--teal);font-weight:700}.timeline p{margin-top:7px}.note{border-bottom:1px solid var(--line);padding:14px 0}.form-card{max-width:740px;margin:0 auto 24px;padding:32px}.form-card>p{color:var(--muted);font-size:13px}.form-card form>button{min-width:130px}.report-total{display:flex;align-items:center;justify-content:space-between;gap:20px}.report-total strong{font-size:36px;color:var(--teal)}.errorlist{padding:12px 24px;border-left:3px solid #aa3030;border-radius:5px;background:#fff0f0;color:#8b1e1e;font-size:13px}.message{padding:14px 18px;background:#e5f2ee;border:1px solid #98c7b5;border-radius:8px;margin-bottom:20px;font-size:13px}.message.error{background:#fff0f0;border-color:#d79c9c;color:#8b1e1e}.pagination{display:flex;align-items:center;gap:20px;padding-top:22px;flex-wrap:wrap;font-size:12px}footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 36px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}footer span:first-child{font-weight:600}:focus-visible{outline:3px solid #aa600b;outline-offset:3px}.skip{position:absolute;top:-100px;background:white;padding:15px;z-index:30}.skip:focus{top:0}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+/* Access page */
+.public .app-shell{grid-template-columns:minmax(0,1fr)}.public .topbar{background:transparent;border-bottom:0;max-width:1260px;width:100%;margin:auto;padding:25px 36px}.public-caption{font-size:12px;color:var(--muted)}.public main{max-width:1220px;padding-top:15px;padding-bottom:40px}.public footer{max-width:1220px;width:100%;margin:auto;border:0}.login-layout{display:grid;grid-template-columns:1.16fr 1fr;gap:65px;align-items:center}.login-story{position:relative;overflow:hidden;min-height:570px;padding:42px;background:#183b49;border-radius:20px;color:white;display:flex;flex-direction:column}.login-story .eyebrow{color:#b9e5d8;font-size:10px}.login-story h1{font-size:clamp(32px,3.4vw,46px);line-height:1.15;letter-spacing:-1.5px;margin:12px 0 20px;font-weight:650}.login-story h1 span{color:#c4e4d7}.login-story>p:not(.eyebrow){color:#dae5e7;max-width:380px;font-size:13px;line-height:1.8}.civic-art{position:relative;height:198px;flex:1;min-height:175px;display:grid;place-items:center}.art-logo{background:#f7f7ed;border-radius:26px;width:142px;height:142px;display:grid;place-items:center;z-index:1;transform:rotate(-7deg);box-shadow:0 14px 24px #0a233f3b}.art-logo img{width:136px;height:136px;transform:rotate(7deg)}.art-orbit{position:absolute;border:1px solid #ffffff24;border-radius:50%;width:280px;height:190px;transform:rotate(-18deg)}.orbit-two{width:345px;height:225px;transform:rotate(25deg)}.art-label{position:absolute;z-index:2;background:white;color:#26434d;border:1px solid #fff5;box-shadow:0 6px 25px #031e3126;padding:9px 12px;border-radius:9px;font-size:10px;font-weight:650;display:flex;align-items:center;gap:8px}.art-label .icon{color:var(--teal);width:16px;height:16px}.label-one{left:0;top:25px;transform:rotate(-5deg)}.label-two{right:0;bottom:18px;transform:rotate(4deg)}.story-foot{display:flex;gap:10px;align-items:center;border-top:1px solid #ffffff24;padding-top:20px;color:#d2e1e4;font-size:11px;margin-top:18px}.story-foot .icon{width:17px;height:17px}.login.card{border:0;background:transparent;box-shadow:none;padding:15px 5px;margin:0}.login-kicker{color:var(--teal);font-size:10px;font-weight:750;letter-spacing:1.6px}.login h2{font-size:30px;font-weight:750;letter-spacing:-1px;margin:13px 0}.login .lead{font-size:13px;margin:0 0 32px}.login form p{margin:0 0 20px}.login input{background:white;min-height:49px}.login form button{width:100%;justify-content:space-between;margin-top:7px;min-height:49px;padding:13px 17px}.login-help{font-size:12px;color:var(--muted);line-height:1.8;margin:23px 0 24px}.login-note{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:21px;font-size:11px;color:var(--muted)}.login-note .icon{width:16px;height:16px;color:var(--teal)}
+@media(min-width:1600px){main{padding:44px 50px}.topbar{padding-left:50px;padding-right:50px}}
+@media(max-width:1200px){:root{--nav-width:220px}.topbar{padding:17px 25px}main{padding:30px 25px}.welcome-strip{flex-wrap:wrap}.welcome-strip .actions{margin-left:60px}.dashboard-grid{grid-template-columns:minmax(0,1fr)}.dashboard-aside{display:grid;grid-template-columns:1fr 1fr;gap:20px}.team-note{align-items:center}.stats{gap:13px}.stat-card{padding:18px}.scope-card h2{font-size:16px}.login-layout{gap:40px}.login-story{padding:35px}.recent-card{margin-bottom:0}.public main{padding-bottom:35px}}
+@media(max-width:900px){.app-shell{grid-template-columns:minmax(0,1fr)}.sidebar{position:static;height:auto;padding:18px 23px 12px;border-right:0;border-bottom:1px solid var(--line)}.sidebar .brand strong{font-size:25px}.sidebar .brand-logo{width:40px;height:40px}.sidebar .brand small{font-size:10px}.nav-label,.sidebar-bottom,.sidebar-caption{display:none}.sidebar nav{flex-direction:row;flex-wrap:wrap;gap:5px;margin-top:17px}.sidebar nav a{font-size:12px;padding:10px 12px;min-height:44px;gap:8px}.sidebar nav .icon{width:17px;height:17px}.topbar{min-height:70px}.topbar-context small{display:none}.stats{grid-template-columns:1fr 1fr 1.1fr}.welcome-strip .actions{margin-left:auto}.login-layout{gap:28px}.login-story{padding:30px;min-height:555px}.login-story h1{font-size:34px}.art-label{font-size:9px;padding:8px}.label-one{left:-8px}.label-two{right:-10px}.login h2{font-size:27px}.public .topbar{padding:24px}.public main{padding:10px 24px 30px}}
+@media(max-width:650px){main{padding:25px 18px}.sidebar{padding:14px 18px 10px}.sidebar nav{gap:2px}.sidebar nav a{padding:10px 9px;font-size:11px;gap:6px}.topbar{padding:13px 18px;gap:10px}.topbar-context strong{font-size:11px}.context-symbol{display:none}.account{gap:8px}.account-text strong{font-size:11px;max-width:135px}.account-text small{font-size:10px}.account form{margin-left:0;padding-left:10px}.avatar{width:29px;height:29px;font-size:11px}.logout-button span{display:none}.logout-button{padding:7px}.stats{grid-template-columns:1fr 1fr;gap:12px}.scope-card{grid-column:1/-1}.scope-card h2{margin:5px 0}.stat-card{margin-bottom:0}.stats{margin-bottom:21px}.stats strong{font-size:32px}.stat-top{font-size:11px}.stat-icon{width:31px;height:31px}.welcome-strip{padding:20px;gap:13px}.welcome-icon{display:none}.welcome-strip .actions{margin:4px 0 0;gap:9px;width:100%}.welcome-strip .actions .button{flex:1;padding:10px;font-size:11px}.dashboard-grid{gap:20px}.dashboard-aside{grid-template-columns:1fr}.team-note{padding:0 5px 10px}.card{padding:20px}.heading{align-items:flex-start;gap:15px}.heading h1{font-size:27px}.date-chip{padding:6px 10px;font-size:11px}.section-heading{align-items:flex-start}.section-heading h2{font-size:16px}.section-heading p{max-width:200px}.filters{align-items:stretch;flex-direction:column}.filters input,.filters select{width:100%}.filter-grid{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr;gap:0}.form-card{padding:23px}.public .topbar{padding:18px}.public-caption{font-size:10px;max-width:130px;text-align:right}.public main{padding:7px 18px 25px}.login-layout{grid-template-columns:1fr;gap:25px}.login-story{padding:25px;min-height:0;border-radius:14px}.login-story h1{font-size:31px}.login-story h1 br{display:none}.login-story>p:not(.eyebrow){max-width:none;margin:0}.civic-art,.story-foot{display:none}.login.card{padding:8px 4px 15px}.login h2{font-size:27px}.login .lead{margin-bottom:25px}footer{padding:20px 18px;flex-direction:column;align-items:flex-start;gap:4px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+@media print{.sidebar,.topbar,.actions,footer,.skip{display:none}.app-shell{display:block}main{padding:0}.card{box-shadow:none;break-inside:avoid}body{background:white}.dashboard-grid{display:block}}
 
 ````
 
@@ -5533,6 +5588,18 @@ if __name__ == '__main__':
 ````
 
 
+## templates/admin/base_site.html
+
+````
+{% extends 'admin/base.html' %}{% load static %}
+{% block title %}{{ title }} | Cívica · Administración{% endblock %}
+{% block branding %}<div id="site-name"><a href="{% url 'admin:index' %}" class="civica-admin-brand"><img src="{% static 'civica-logo.png' %}" alt="" width="42" height="42"><span>Cívica<span class="civica-admin-dot">.</span><small>Administración municipal</small></span></a></div>{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin-civica.css' %}">{% endblock %}
+{% block nav-global %}{% endblock %}
+
+````
+
+
 ## templates/agenda.html
 
 ````
@@ -5565,14 +5632,44 @@ if __name__ == '__main__':
 {% load static %}
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{% block title %}Delegaciones Municipales{% endblock %}</title><link rel="stylesheet" href="{% static 'app.css' %}"></head>
-<body>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Cívica · Delegaciones Municipales{% endblock %}</title>
+<link rel="icon" type="image/png" href="{% static 'civica-logo.png' %}">
+<link rel="stylesheet" href="{% static 'app.css' %}?v=civica-1">
+</head>
+<body class="{% if user.is_authenticated %}workspace{% else %}public{% endif %}">
 <a class="skip" href="#contenido">Saltar al contenido</a>
-<header><div class="brand"><span class="emblem" aria-hidden="true">DM</span><div><strong>Delegaciones Municipales</strong><small>Gestión y atención ciudadana · Prototipo</small></div></div>
-{% if user.is_authenticated %}<div class="account"><span>{{ user.get_full_name|default:user.username }}<small>{{ user.get_rol_display }} · {{ user.delegacion|default:'Todas las delegaciones' }}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary" type="submit">Salir</button></form></div>{% endif %}</header>
-{% if user.is_authenticated %}<nav aria-label="Navegación principal"><a href="{% url 'inicio' %}">Inicio</a><a href="{% url 'vecinos' %}">Vecinos</a><a href="{% url 'solicitudes' %}">Solicitudes</a><a href="{% url 'agenda' %}">Agenda</a>{% if user.supervisa %}<a href="{% url 'reportes' %}">Reportes</a>{% endif %}{% if user.administra %}<a href="{% url 'auditoria' %}">Auditoría</a><a href="/admin/">Administración</a>{% endif %}</nav>{% endif %}
+<div class="app-shell">
+{% if user.is_authenticated %}
+<aside class="sidebar" aria-label="Módulos del sistema">
+<a class="brand" href="{% url 'inicio' %}"><img class="brand-logo" src="{% static 'civica-logo.png' %}" alt="" width="48" height="48"><span><strong>Cívica<span class="brand-dot">.</span></strong><small>Delegaciones Municipales</small></span></a>
+<p class="nav-label">ESPACIO DE TRABAJO</p>
+<nav aria-label="Navegación principal">
+<a href="{% url 'inicio' %}" {% if request.path == '/' %}aria-current="page"{% endif %}>{% include 'icon.html' with name='home' %}<span>Inicio</span></a>
+<a href="{% url 'vecinos' %}" {% if '/vecinos/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='users' %}<span>Vecinos</span></a>
+<a href="{% url 'solicitudes' %}" {% if '/solicitudes/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='file' %}<span>Solicitudes</span></a>
+<a href="{% url 'agenda' %}" {% if '/agenda/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='calendar' %}<span>Agenda</span></a>
+{% if user.supervisa %}<a href="{% url 'reportes' %}" {% if '/reportes/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='chart' %}<span>Reportes</span></a>{% endif %}
+{% if user.administra %}<a href="{% url 'auditoria' %}" {% if '/auditoria/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='shield' %}<span>Auditoría</span></a><a href="/admin/">{% include 'icon.html' with name='settings' %}<span>Administración</span></a>{% endif %}
+</nav>
+<div class="sidebar-bottom"><div class="scope-icon">{% include 'icon.html' with name='building' %}</div><div><small>Tu delegación</small><strong>{{ user.delegacion|default:'Todas las delegaciones' }}</strong></div></div>
+<div class="sidebar-caption">Gestión cercana. Atención conectada.</div>
+</aside>
+{% endif %}
+<div class="workspace-body">
+<header class="topbar">
+{% if user.is_authenticated %}
+<div class="topbar-context"><span class="context-symbol">{% include 'icon.html' with name='building' %}</span><div><strong>Gestión municipal</strong><small>Atención ciudadana y seguimiento</small></div></div>
+<div class="account"><span class="avatar" aria-hidden="true">{{ user.get_full_name|default:user.username|first|upper }}</span><span class="account-text"><strong>{{ user.get_full_name|default:user.username }}</strong><small>{{ user.get_rol_display }}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout-button" type="submit" aria-label="Salir">{% include 'icon.html' with name='logout' %}<span>Salir</span></button></form></div>
+{% else %}
+<a class="brand" href="{% url 'login' %}"><img class="brand-logo" src="{% static 'civica-logo.png' %}" alt="" width="48" height="48"><span><strong>Cívica<span class="brand-dot">.</span></strong><small>Delegaciones Municipales</small></span></a><span class="public-caption">Plataforma de gestión municipal</span>
+{% endif %}
+</header>
 <main id="contenido" tabindex="-1">{% for message in messages %}<div class="message {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}{% block content %}{% endblock %}</main>
-<footer>Demostración académica · Solo datos ficticios · Horario de Chile</footer>
+<footer><span>Cívica · Delegaciones Municipales</span><span>Demostración académica · Datos ficticios · Horario de Chile</span></footer>
+</div>
+</div>
 {% if user.is_authenticated %}<script src="{% static 'sesion.js' %}" defer></script>{% endif %}
 </body></html>
 
@@ -5611,10 +5708,43 @@ if __name__ == '__main__':
 ````
 
 
+## templates/icon.html
+
+````
+<svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+{% if name == 'home' %}<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>
+{% elif name == 'users' %}<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M21 21v-3a6 6 0 0 0-4-5"/>
+{% elif name == 'file' %}<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/>
+{% elif name == 'calendar' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2"/>
+{% elif name == 'chart' %}<path d="M4 3v18h17M9 16v-5M14 16V7M19 16v-8"/>
+{% elif name == 'shield' %}<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/>
+{% elif name == 'settings' %}<circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 3 3-1 2 4 3-2 1-3 3-1 2-3-2-2 1-3-3-3-3 1z"/>
+{% elif name == 'arrow' %}<path d="M5 12h14M13 6l6 6-6 6"/>
+{% elif name == 'plus' %}<path d="M12 5v14M5 12h14"/>
+{% elif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+{% elif name == 'logout' %}<path d="M9 4H4v16h5M10 12h11M17 8l4 4-4 4"/>
+{% elif name == 'building' %}<path d="M3 21h18M5 21V9h14v12M3 9l9-6 9 6M9 13v3M15 13v3M10 21v-3h4v3"/>
+{% endif %}</svg>
+
+````
+
+
 ## templates/inicio.html
 
 ````
-{% extends 'base.html' %}{% block content %}<p class="eyebrow">PANEL DE ATENCIÓN</p><h1>Una atención más cercana</h1><p class="lead">Registra vecinos y acompaña cada solicitud desde su ingreso hasta su cierre.</p><div class="stats"><section class="card"><span>Solicitudes registradas</span><strong>{{ total }}</strong></section><section class="card"><span>Pendientes de cierre</span><strong>{{ pendientes }}</strong></section><section class="card"><span>Tu ámbito de trabajo</span><h2>{{ user.delegacion|default:'Todas las delegaciones' }}</h2></section></div><div class="actions"><a class="button" href="{% url 'solicitud_crear' %}">Ingresar solicitud</a><a class="button secondary" href="{% url 'vecino_crear' %}">Registrar vecino</a></div><section class="card"><h2>Últimas solicitudes</h2>{% include 'tabla_solicitudes.html' with filas=solicitudes %}</section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Inicio · Cívica{% endblock %}
+{% block content %}
+<div class="heading dashboard-heading"><div><p class="eyebrow">TU ESPACIO DE TRABAJO</p><h1>Todo listo para una mejor atención.</h1><p class="lead">Bienvenido, {{ user.get_full_name|default:user.username }}. Este es el resumen de tu gestión.</p></div><span class="date-chip">{% include 'icon.html' with name='calendar' %}{% now 'd M Y' %}</span></div>
+<div class="stats">
+<section class="card stat-card"><div class="stat-top"><span>Solicitudes registradas</span><span class="stat-icon">{% include 'icon.html' with name='file' %}</span></div><strong>{{ total }}</strong><small>Total en tu ámbito de trabajo</small></section>
+<section class="card stat-card"><div class="stat-top"><span>Pendientes de cierre</span><span class="stat-icon amber">{% include 'icon.html' with name='clock' %}</span></div><strong>{{ pendientes }}</strong><small>Solicitudes que siguen abiertas</small></section>
+<section class="card stat-card scope-card"><div class="stat-top"><span>Tu ámbito de trabajo</span><span class="stat-icon">{% include 'icon.html' with name='building' %}</span></div><h2>{{ user.delegacion|default:'Todas las delegaciones' }}</h2><small>{{ user.get_rol_display }}</small></section>
+</div>
+<section class="welcome-strip"><div class="welcome-icon">{% include 'icon.html' with name='users' %}</div><div><h2>Cada atención comienza con un buen registro.</h2><p>Ingresa una solicitud o incorpora a un vecino para dar el siguiente paso.</p></div><div class="actions"><a class="button" href="{% url 'solicitud_crear' %}">{% include 'icon.html' with name='plus' %}Ingresar solicitud</a><a class="button secondary" href="{% url 'vecino_crear' %}">Registrar vecino</a></div></section>
+<div class="dashboard-grid"><section class="card recent-card"><div class="section-heading"><div><h2>Últimas solicitudes</h2><p>Los ingresos más recientes de tu delegación.</p></div><a class="text-link" href="{% url 'solicitudes' %}">Ver todas {% include 'icon.html' with name='arrow' %}</a></div>{% include 'tabla_solicitudes.html' with filas=solicitudes %}</section>
+<aside class="dashboard-aside"><section class="card agenda-card"><span class="stat-icon">{% include 'icon.html' with name='calendar' %}</span><h2>Organiza la atención</h2><p>Consulta las reservas y coordina los próximos encuentros con tus vecinos.</p><a class="text-link" href="{% url 'agenda' %}">Ir a la agenda {% include 'icon.html' with name='arrow' %}</a></section><section class="team-note"><span class="note-dot"></span><div><strong>Un equipo, una gestión más clara.</strong><p>El historial de cada solicitud permite dar continuidad a la atención.</p></div></section></aside></div>
+{% endblock %}
 
 ````
 
@@ -5646,9 +5776,19 @@ if __name__ == '__main__':
 ## templates/registration/login.html
 
 ````
-{% extends 'base.html' %}
-{% block title %}Acceso · Delegaciones Municipales{% endblock %}
-{% block content %}<section class="login card"><p class="eyebrow">ATENCIÓN MUNICIPAL</p><h1>Bienvenido</h1><p>Ingresa con tu cuenta institucional para gestionar la atención de tu delegación.</p><form method="post">{% csrf_token %}{{ form.as_p }}{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}<button type="submit">Ingresar al sistema</button></form><p class="hint">El acceso está reservado al personal autorizado.</p></section>{% endblock %}
+{% extends 'base.html' %}{% load static %}
+{% block title %}Acceso · Cívica{% endblock %}
+{% block content %}
+<div class="login-layout">
+<section class="login-story" aria-labelledby="presentacion">
+<p class="eyebrow">GESTIÓN QUE ACERCA</p><h1 id="presentacion">Una mejor atención.<br>Una comunidad<br><span>más conectada.</span></h1>
+<p>Vecinos, solicitudes y atenciones en un mismo lugar. Más claridad para tu equipo, más continuidad para cada trámite.</p>
+<div class="civic-art" aria-hidden="true"><span class="art-orbit orbit-one"></span><span class="art-orbit orbit-two"></span><div class="art-logo"><img src="{% static 'civica-logo.png' %}" alt="" width="160" height="160"></div><span class="art-label label-one">{% include 'icon.html' with name='users' %}Atención cercana</span><span class="art-label label-two">{% include 'icon.html' with name='file' %}Gestión organizada</span></div>
+<div class="story-foot">{% include 'icon.html' with name='building' %}<span>Una plataforma para el trabajo de tu delegación.</span></div>
+</section>
+<section class="login card" aria-labelledby="acceso-titulo"><span class="login-kicker">ESPACIO INSTITUCIONAL</span><h2 id="acceso-titulo">Bienvenido a Cívica</h2><p class="lead">Ingresa con tu cuenta para comenzar tu jornada.</p><form method="post">{% csrf_token %}{{ form.as_p }}{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}<button type="submit">Ingresar al sistema {% include 'icon.html' with name='arrow' %}</button></form><p class="login-help">¿Necesitas acceso? Contacta al administrador de tu delegación.</p><div class="login-note">{% include 'icon.html' with name='shield' %}<span>Acceso reservado al personal autorizado.</span></div></section>
+</div>
+{% endblock %}
 
 ````
 

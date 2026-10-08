@@ -102,3 +102,7 @@ se ensayó localmente y se publica en esta rama; el despliegue en la cuenta AWS 
 ## Despliegue recomendado en su EC2: Apache
 
 Siga [la guía Apache paso a paso](docs/apache-paso-a-paso.md) para Amazon Linux 2023, sin Docker ni Nginx. Apache atiende 80/443 y Gunicorn ejecuta Django mediante un socket privado. Las guías EC2 anteriores con Docker siguen disponibles como alternativa; use una modalidad completa.
+
+## Identidad visual Cívica
+
+La interfaz renovada y las capturas están en [docs/diseno-visual.md](docs/diseno-visual.md). Si ya instaló la modalidad Apache, esa guía incluye la actualización de la interfaz con respaldo de los archivos actuales.

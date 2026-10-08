@@ -1,3 +1,13 @@
-{% extends 'base.html' %}
-{% block title %}Acceso · Delegaciones Municipales{% endblock %}
-{% block content %}<section class="login card"><p class="eyebrow">ATENCIÓN MUNICIPAL</p><h1>Bienvenido</h1><p>Ingresa con tu cuenta institucional para gestionar la atención de tu delegación.</p><form method="post">{% csrf_token %}{{ form.as_p }}{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}<button type="submit">Ingresar al sistema</button></form><p class="hint">El acceso está reservado al personal autorizado.</p></section>{% endblock %}
+{% extends 'base.html' %}{% load static %}
+{% block title %}Acceso · Cívica{% endblock %}
+{% block content %}
+<div class="login-layout">
+<section class="login-story" aria-labelledby="presentacion">
+<p class="eyebrow">GESTIÓN QUE ACERCA</p><h1 id="presentacion">Una mejor atención.<br>Una comunidad<br><span>más conectada.</span></h1>
+<p>Vecinos, solicitudes y atenciones en un mismo lugar. Más claridad para tu equipo, más continuidad para cada trámite.</p>
+<div class="civic-art" aria-hidden="true"><span class="art-orbit orbit-one"></span><span class="art-orbit orbit-two"></span><div class="art-logo"><img src="{% static 'civica-logo.png' %}" alt="" width="160" height="160"></div><span class="art-label label-one">{% include 'icon.html' with name='users' %}Atención cercana</span><span class="art-label label-two">{% include 'icon.html' with name='file' %}Gestión organizada</span></div>
+<div class="story-foot">{% include 'icon.html' with name='building' %}<span>Una plataforma para el trabajo de tu delegación.</span></div>
+</section>
+<section class="login card" aria-labelledby="acceso-titulo"><span class="login-kicker">ESPACIO INSTITUCIONAL</span><h2 id="acceso-titulo">Bienvenido a Cívica</h2><p class="lead">Ingresa con tu cuenta para comenzar tu jornada.</p><form method="post">{% csrf_token %}{{ form.as_p }}{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}<button type="submit">Ingresar al sistema {% include 'icon.html' with name='arrow' %}</button></form><p class="login-help">¿Necesitas acceso? Contacta al administrador de tu delegación.</p><div class="login-note">{% include 'icon.html' with name='shield' %}<span>Acceso reservado al personal autorizado.</span></div></section>
+</div>
+{% endblock %}

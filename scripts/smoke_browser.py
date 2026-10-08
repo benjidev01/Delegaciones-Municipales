@@ -1,5 +1,6 @@
 """Exercise the first sprint against a running local server using fictional data."""
 import json
+import os
 from pathlib import Path
 import re
 import uuid
@@ -7,7 +8,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 credentials = json.loads((ROOT / '.local/demo-credentials.json').read_text())
-BASE = 'http://127.0.0.1:8000'
+BASE = os.environ.get('DELEGACIONES_TEST_URL', 'http://127.0.0.1:8000')
 OUT = ROOT / '.local/browser'
 OUT.mkdir(exist_ok=True)
 
@@ -82,11 +83,14 @@ with sync_playwright() as playwright:
 
     page.get_by_role('button', name='Salir', exact=True).click()
     page.wait_for_url(BASE + '/acceso/')
-    # Django focuses the username automatically on login. Shift+Tab reaches
-    # the preceding skip link without relying on browser history focus.
+    # Reach the skip link with the keyboard, including any preceding brand link.
     page.locator('#id_username').focus()
-    page.keyboard.press('Shift+Tab')
-    assert page.evaluate('document.activeElement.textContent') == 'Saltar al contenido'
+    for _ in range(10):
+        page.keyboard.press('Shift+Tab')
+        if page.evaluate('document.activeElement.textContent.trim()') == 'Saltar al contenido':
+            break
+    assert page.evaluate('document.activeElement.textContent.trim()') == 'Saltar al contenido'
+    assert page.get_by_role('link', name='Saltar al contenido').is_visible()
     page.keyboard.press('Enter')
     assert page.locator('#contenido').evaluate('(node) => node === document.activeElement')
     assert not errors, errors

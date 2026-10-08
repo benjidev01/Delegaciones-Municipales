@@ -1,0 +1,249 @@
+{
+  "entorno": "Desarrollo local, datos ficticios",
+  "pantallas_tamanos": 40,
+  "pruebas_django_aprobadas": 115,
+  "resultados": [
+    {
+      "width": 1440,
+      "route": "/acceso/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/vecinos/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/vecinos/nuevo/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/solicitudes/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/solicitudes/nueva/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/solicitudes/1/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/agenda/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/agenda/nueva/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/reportes/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/acceso/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/vecinos/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/vecinos/nuevo/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/solicitudes/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/solicitudes/nueva/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/solicitudes/1/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/agenda/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/agenda/nueva/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/reportes/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/acceso/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/vecinos/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/vecinos/nuevo/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/solicitudes/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/solicitudes/nueva/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/solicitudes/1/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/agenda/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/agenda/nueva/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/reportes/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/auditoria/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/admin/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/admin/cuentas/usuario/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "route": "/admin/cuentas/usuario/add/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/admin/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/admin/cuentas/usuario/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "route": "/admin/cuentas/usuario/add/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/admin/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/admin/cuentas/usuario/",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "route": "/admin/cuentas/usuario/add/",
+      "overflow": false,
+      "violations": []
+    }
+  ],
+  "revision_humana_pendiente": true,
+  "actualizacion_aws_ejecutada": false
+}

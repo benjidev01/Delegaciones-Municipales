@@ -1,13 +1,43 @@
 {% load static %}
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{% block title %}Delegaciones Municipales{% endblock %}</title><link rel="stylesheet" href="{% static 'app.css' %}"></head>
-<body>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Cívica · Delegaciones Municipales{% endblock %}</title>
+<link rel="icon" type="image/png" href="{% static 'civica-logo.png' %}">
+<link rel="stylesheet" href="{% static 'app.css' %}?v=civica-1">
+</head>
+<body class="{% if user.is_authenticated %}workspace{% else %}public{% endif %}">
 <a class="skip" href="#contenido">Saltar al contenido</a>
-<header><div class="brand"><span class="emblem" aria-hidden="true">DM</span><div><strong>Delegaciones Municipales</strong><small>Gestión y atención ciudadana · Prototipo</small></div></div>
-{% if user.is_authenticated %}<div class="account"><span>{{ user.get_full_name|default:user.username }}<small>{{ user.get_rol_display }} · {{ user.delegacion|default:'Todas las delegaciones' }}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary" type="submit">Salir</button></form></div>{% endif %}</header>
-{% if user.is_authenticated %}<nav aria-label="Navegación principal"><a href="{% url 'inicio' %}">Inicio</a><a href="{% url 'vecinos' %}">Vecinos</a><a href="{% url 'solicitudes' %}">Solicitudes</a><a href="{% url 'agenda' %}">Agenda</a>{% if user.supervisa %}<a href="{% url 'reportes' %}">Reportes</a>{% endif %}{% if user.administra %}<a href="{% url 'auditoria' %}">Auditoría</a><a href="/admin/">Administración</a>{% endif %}</nav>{% endif %}
+<div class="app-shell">
+{% if user.is_authenticated %}
+<aside class="sidebar" aria-label="Módulos del sistema">
+<a class="brand" href="{% url 'inicio' %}"><img class="brand-logo" src="{% static 'civica-logo.png' %}" alt="" width="48" height="48"><span><strong>Cívica<span class="brand-dot">.</span></strong><small>Delegaciones Municipales</small></span></a>
+<p class="nav-label">ESPACIO DE TRABAJO</p>
+<nav aria-label="Navegación principal">
+<a href="{% url 'inicio' %}" {% if request.path == '/' %}aria-current="page"{% endif %}>{% include 'icon.html' with name='home' %}<span>Inicio</span></a>
+<a href="{% url 'vecinos' %}" {% if '/vecinos/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='users' %}<span>Vecinos</span></a>
+<a href="{% url 'solicitudes' %}" {% if '/solicitudes/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='file' %}<span>Solicitudes</span></a>
+<a href="{% url 'agenda' %}" {% if '/agenda/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='calendar' %}<span>Agenda</span></a>
+{% if user.supervisa %}<a href="{% url 'reportes' %}" {% if '/reportes/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='chart' %}<span>Reportes</span></a>{% endif %}
+{% if user.administra %}<a href="{% url 'auditoria' %}" {% if '/auditoria/' in request.path %}aria-current="page"{% endif %}>{% include 'icon.html' with name='shield' %}<span>Auditoría</span></a><a href="/admin/">{% include 'icon.html' with name='settings' %}<span>Administración</span></a>{% endif %}
+</nav>
+<div class="sidebar-bottom"><div class="scope-icon">{% include 'icon.html' with name='building' %}</div><div><small>Tu delegación</small><strong>{{ user.delegacion|default:'Todas las delegaciones' }}</strong></div></div>
+<div class="sidebar-caption">Gestión cercana. Atención conectada.</div>
+</aside>
+{% endif %}
+<div class="workspace-body">
+<header class="topbar">
+{% if user.is_authenticated %}
+<div class="topbar-context"><span class="context-symbol">{% include 'icon.html' with name='building' %}</span><div><strong>Gestión municipal</strong><small>Atención ciudadana y seguimiento</small></div></div>
+<div class="account"><span class="avatar" aria-hidden="true">{{ user.get_full_name|default:user.username|first|upper }}</span><span class="account-text"><strong>{{ user.get_full_name|default:user.username }}</strong><small>{{ user.get_rol_display }}</small></span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout-button" type="submit" aria-label="Salir">{% include 'icon.html' with name='logout' %}<span>Salir</span></button></form></div>
+{% else %}
+<a class="brand" href="{% url 'login' %}"><img class="brand-logo" src="{% static 'civica-logo.png' %}" alt="" width="48" height="48"><span><strong>Cívica<span class="brand-dot">.</span></strong><small>Delegaciones Municipales</small></span></a><span class="public-caption">Plataforma de gestión municipal</span>
+{% endif %}
+</header>
 <main id="contenido" tabindex="-1">{% for message in messages %}<div class="message {{ message.tags }}" role="status">{{ message }}</div>{% endfor %}{% block content %}{% endblock %}</main>
-<footer>Demostración académica · Solo datos ficticios · Horario de Chile</footer>
+<footer><span>Cívica · Delegaciones Municipales</span><span>Demostración académica · Datos ficticios · Horario de Chile</span></footer>
+</div>
+</div>
 {% if user.is_authenticated %}<script src="{% static 'sesion.js' %}" defer></script>{% endif %}
 </body></html>

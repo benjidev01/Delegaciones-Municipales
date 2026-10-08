@@ -1,0 +1,5 @@
+{% extends 'admin/base.html' %}{% load static %}
+{% block title %}{{ title }} | Cívica · Administración{% endblock %}
+{% block branding %}<div id="site-name"><a href="{% url 'admin:index' %}" class="civica-admin-brand"><img src="{% static 'civica-logo.png' %}" alt="" width="42" height="42"><span>Cívica<span class="civica-admin-dot">.</span><small>Administración municipal</small></span></a></div>{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin-civica.css' %}">{% endblock %}
+{% block nav-global %}{% endblock %}
