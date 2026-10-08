@@ -130,6 +130,7 @@ sudo tail -n 50 /var/log/httpd/error_log
 - **502/503 después de activar HTTPS:** revise `delegaciones`, el socket y los registros Apache.
 - **Timeout desde su PC:** compruebe IP, grupo de seguridad y ruta de Internet.
 - **CSS ausente:** ejecute `sudo municipal-manage collectstatic --noinput` y `sudo restorecon -R /var/www/delegaciones-static`.
+- **Error `conflicts with equivalency rule` al instalar:** actualice el clon con `git pull --ff-only origin proyecto-completo` y vuelva a ejecutar el instalador con la misma IP y correo. La regla SELinux usa `/var/run/delegaciones`, porque `/run` es su equivalente. El instalador conserva la base y las contraseñas existentes.
 - **Denegación SELinux:** consulte `sudo ausearch -m AVC -ts recent`. No desactive SELinux; revise etiquetas y la denegación concreta.
 - **Cambió la IP:** la configuración y el certificado deben actualizarse conjuntamente; la Elastic IP evita este cambio habitual.
 

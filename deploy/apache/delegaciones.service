@@ -12,7 +12,7 @@ Environment=DJANGO_CONFIG_FILE=/etc/delegaciones/config.json
 Environment=DJANGO_DEMO_CREDENTIALS_FILE=/var/lib/delegaciones/demo-credentials.json
 RuntimeDirectory=delegaciones
 RuntimeDirectoryMode=0750
-ExecStartPre=+/usr/sbin/restorecon -R /run/delegaciones
+ExecStartPre=+/usr/sbin/restorecon -R /var/run/delegaciones
 ExecStart=/opt/delegaciones/venv/bin/gunicorn config.wsgi:application --bind unix:/run/delegaciones/gunicorn.sock --umask 007 --workers 2 --threads 2 --timeout 30 --forwarded-allow-ips= --no-control-socket --access-logfile - --error-logfile -
 Restart=on-failure
 RestartSec=5

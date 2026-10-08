@@ -2956,7 +2956,7 @@ Environment=DJANGO_CONFIG_FILE=/etc/delegaciones/config.json
 Environment=DJANGO_DEMO_CREDENTIALS_FILE=/var/lib/delegaciones/demo-credentials.json
 RuntimeDirectory=delegaciones
 RuntimeDirectoryMode=0750
-ExecStartPre=+/usr/sbin/restorecon -R /run/delegaciones
+ExecStartPre=+/usr/sbin/restorecon -R /var/run/delegaciones
 ExecStart=/opt/delegaciones/venv/bin/gunicorn config.wsgi:application --bind unix:/run/delegaciones/gunicorn.sock --umask 007 --workers 2 --threads 2 --timeout 30 --forwarded-allow-ips= --no-control-socket --access-logfile - --error-logfile -
 Restart=on-failure
 RestartSec=5
@@ -4418,7 +4418,8 @@ if [[ $(runuser -u postgres -- psql -At -c 'SHOW listen_addresses') != localhost
     echo 'PostgreSQL no está limitado a localhost. Revise antes de continuar.'; exit 1
 fi
 cat /etc/delegaciones/config.json | runuser -u postgres -- /opt/delegaciones/venv/bin/python /opt/delegaciones/app/scripts/provision_apache.py
-semanage fcontext -a -t httpd_var_run_t '/run/delegaciones(/.*)?' 2>/dev/null || semanage fcontext -m -t httpd_var_run_t '/run/delegaciones(/.*)?'
+# SELinux maps /run to /var/run; register the canonical policy path.
+semanage fcontext -a -t httpd_var_run_t '/var/run/delegaciones(/.*)?' 2>/dev/null || semanage fcontext -m -t httpd_var_run_t '/var/run/delegaciones(/.*)?'
 restorecon -R /var/www/delegaciones-static /var/www/delegaciones-acme
 install -m 0644 /opt/delegaciones/app/deploy/apache/*.service /opt/delegaciones/app/deploy/apache/*.timer /etc/systemd/system/
 cat > /usr/local/bin/municipal-manage <<'MANAGE'
